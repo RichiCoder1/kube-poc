@@ -1,0 +1,88 @@
+kind: Module
+description: Gloo auth container
+name: auth
+type: container
+
+include:
+  - "**"
+
+services:
+  - name: auth-server
+    ports:
+      - name: http
+        containerPort: 80
+        servicePort: 80
+
+# ---
+
+# # Setup the gloo upstream
+# kind: Module
+# name: auth-server-upstream
+# type: kubernetes
+# dependencies:
+#   - gloo
+
+# include: []
+
+# manifests:
+#   - apiVersion: gloo.solo.io/v1
+#     kind: Upstream
+#     metadata:
+#       name: auth-server
+#       namespace: ${providers.local-kubernetes.outputs.app-namespace}
+#     spec:
+#       static:
+#         hosts:
+#         - addr: auth-service.kube-poc.svc.cluster.local
+#           port: 80
+
+# ---
+
+# kind: Module
+# name: patch-gloo-auth
+# type: kubernetes
+# dependencies:
+#   - gloo
+
+# include: []
+
+# manifests:
+#   - apiVersion: gloo.solo.io/v1
+#     kind: Settings
+#     metadata:
+#       labels:
+#         app: gloo
+#       name: default
+#       namespace: ${providers.local-kubernetes.outputs.app-namespace}
+#     spec:
+#       discovery:
+#         fdsMode: WHITELIST
+#       discoveryNamespace: ${providers.local-kubernetes.outputs.app-namespace}
+#       gateway:
+#         readGatewaysFromAllNamespaces: false
+#         validation:
+#           alwaysAccept: true
+#           proxyValidationServerAddr: gloo:9988
+#       gloo:
+#         disableKubernetesDestinations: false
+#         invalidConfigPolicy:
+#           invalidRouteResponseBody: Gloo Gateway has invalid configuration. Administrators
+#             should run `glooctl check` to find and fix config errors.
+#           invalidRouteResponseCode: 404
+#         xdsBindAddr: 0.0.0.0:9977
+#       kubernetesArtifactSource: {}
+#       kubernetesConfigSource: {}
+#       kubernetesSecretSource: {}
+#       refreshRate: 60s
+#       extauth:
+#         extauthzServerRef:
+#           name: auth-server
+#           namespace: ${providers.local-kubernetes.outputs.app-namespace}
+#         httpService:
+#           request:
+#             allowedHeaders:
+#               - "Cookie"
+#               - "Authorization"
+#         requestBody:
+#           maxRequestBytes: 10240
+#         requestTimeout: 0.5s

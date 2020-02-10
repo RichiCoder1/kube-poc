@@ -1,0 +1,49 @@
+kind: Module
+description: Frontend service container
+name: frontend
+type: container
+
+include:
+  - '**'
+
+services:
+  - name: frontend
+    ports:
+      - name: http
+        containerPort: 80
+        servicePort: 80
+
+hotReload:
+  sync:
+    - source: wwwroot/
+      target: /app/wwwroot/
+---
+
+# Setup the gloo route
+kind: Module
+name: frontend-virtual-service
+type: kubernetes
+dependencies:
+  - gloo
+
+manifests:
+  - apiVersion: gateway.solo.io/v1
+    kind: VirtualService
+    metadata:
+      name: frontend
+      namespace: ${providers.local-kubernetes.outputs.app-namespace}
+    spec:
+      virtualHost:
+        domains:
+          - '*'
+        routes:
+          - matchers:
+              - prefix: /
+            routeAction:
+              single:
+                kube:
+                  ref:
+                    name: frontend
+                    namespace: ${providers.local-kubernetes.outputs.app-namespace}
+                  port: 80
+            
