@@ -1,0 +1,29 @@
+kind: Module
+type: exec
+name: knative
+
+local: true
+build:
+  command: 
+    - glooctl
+    - install
+    - knative --skip-installing-gloo --install-knative-version ${var.knative-version} --install-eventing --install-eventing-version ${var.knative-version}
+    - --dry-run
+    - "> knative.generated.yaml" 
+
+tasks:
+  - name: knative-apply
+    command:
+      - kubectl
+      - apply
+      - -f
+      - ./knative.generated.yaml
+  - name: knative-install
+    dependencies:
+      - knative-apply
+    command:
+      - kubectl
+      - wait
+      - --for=condition=available
+      - deployment.apps/webhook
+      - -n=knative-serving

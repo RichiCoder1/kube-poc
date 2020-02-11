@@ -1,0 +1,26 @@
+kind: Module
+description: Gloo Gateway
+type: helm
+name: gloo
+chart: gloo
+repo: https://storage.googleapis.com/solo-public-helm
+
+dependencies:
+  - knative-install
+
+values:
+  ingress:
+    enabled: true
+  ingressProxy:
+    deployment:
+      httpPort: 8081
+      httpsPort: 8444
+  gatewayProxies:
+    gatewayProxy:
+      service:
+        httpPort: 8080
+        httpsPort: 8443
+
+serviceResource:
+  kind: Deployment
+  name: gateway-proxy
